@@ -39,7 +39,30 @@ const readById = async (req, res) => {
   }
 }
 
+const readByFilters = async (req, res) => {
+  const { precioMin, precioMax, categoria, metal } = req.query
+
+  try {
+    const joyas = await joyasModel.findByFilters({
+      precioMin,
+      precioMax,
+      categoria,
+      metal
+    })
+
+    if (joyas.length === 0) {
+      return res.status(404).json({ message: 'No results found' })
+    }
+
+    return res.json(joyas)
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ message: 'Internal server error' })
+  }
+}
+
 export const joyasController = {
   read,
-  readById
+  readById,
+  readByFilters
 }

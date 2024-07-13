@@ -4,6 +4,7 @@ const { Pool } = pkg
 
 // cambia los datos de acuerdo a tu configuracion de postgres
 export const pool = new Pool({
+  database: process.env.DB_NAME,
   allowExitOnIdle: true
 })
 

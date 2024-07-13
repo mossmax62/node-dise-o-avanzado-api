@@ -27,14 +27,14 @@ const findAll = async ({ limit = 5, order = 'ASC', page = 1 }) => {
   // Devuelve un array con los resultados y un enlace a cada uno de ellos
   const results = rows.map((row) => {
     return {
-      ...row,
+      // ...row,
+      nombre: row.nombre,
       href: `${BASE_URL}/joyas/${row.id}`
     }
   })
 
   // Devuelve un objeto con los resultados, el número total de páginas y los enlaces a la página siguiente y anterior
   return {
-    results,
     totalPages,
     page,
     limit,
@@ -43,7 +43,8 @@ const findAll = async ({ limit = 5, order = 'ASC', page = 1 }) => {
         ? null
         : `${BASE_URL}/joyas?limit=${limit}&page=${page + 1}`,
     previous:
-      page <= 1 ? null : `${BASE_URL}/joyas?limit=${limit}&page=${page - 1}`
+      page <= 1 ? null : `${BASE_URL}/joyas?limit=${limit}&page=${page - 1}`,
+    results
   }
 }
 
@@ -53,7 +54,35 @@ const findById = async (id) => {
   return rows[0]
 }
 
-export const todoModel = {
+const findByFilters = async ({ precioMin, precioMax, categoria, metal }) => {
+  let filtros = []
+  const values = []
+
+  const agregarFiltro = (campo, comparador, valor) => {
+    values.push(valor)
+    const { length } = filtros
+    filtros.push(`${campo} ${comparador} $${length + 1}`)
+  }
+
+  if (precioMin) agregarFiltro('precio', '>=', precioMin)
+  if (precioMax) agregarFiltro('precio', '<=', precioMax)
+  if (categoria) agregarFiltro('categoria', '=', categoria)
+  if (metal) agregarFiltro('metal', '=', metal)
+
+  let consulta = 'SELECT * FROM inventario'
+
+  if (filtros.length > 0) {
+    filtros = filtros.join(' AND ')
+    consulta += ` WHERE ${filtros}`
+  }
+  console.log(consulta)
+  console.log(values)
+  const { rows: joyas } = await pool.query(consulta, values)
+  return joyas
+}
+
+export const joyasModel = {
   findAll,
-  findById
+  findById,
+  findByFilters
 }
