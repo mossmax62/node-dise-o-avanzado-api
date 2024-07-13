@@ -1,7 +1,13 @@
 import { joyasModel } from '../models/joyas.models.js'
 
 const read = async (req, res) => {
-  const { limit = 5, order = 'ASC', page = 1 } = req.query
+  const { limit = 5, orderBy, page = 1 } = req.query
+  console.log(orderBy)
+  let order
+  if (orderBy) {
+    order = orderBy.split('_')
+    console.log(order)
+  }
 
   // Utilizar una expresión regular para verificar si 'page' es un número válido
   const isPageValid = /^[1-9]\d*$/.test(page)

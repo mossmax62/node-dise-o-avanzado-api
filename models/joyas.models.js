@@ -10,7 +10,7 @@ const BASE_URL =
     ? process.env.DOMAIN_URL_APP
     : `http://localhost::${process.env.PORT}`
 
-const findAll = async ({ limit = 5, order = 'ASC', page = 1 }) => {
+const findAll = async ({ limit = 5, order = 'precio DESC', page = 1 }) => {
   // Consulta para contar el número total de filas en la tabla 'inventario'
   const countQuery = 'SELECT COUNT(*) FROM inventario'
   const { rows: countResult } = await pool.query(countQuery)
@@ -19,9 +19,12 @@ const findAll = async ({ limit = 5, order = 'ASC', page = 1 }) => {
   // Calcula el número total de páginas
   const totalPages = Math.ceil(totalRows / limit)
 
-  const query = 'SELECT * FROM inventario ORDER BY precio %s LIMIT %s OFFSET %s'
+  const query = 'SELECT * FROM inventario ORDER BY %s %s LIMIT %s OFFSET %s'
   const offset = (page - 1) * limit
-  const formattedQuery = format(query, order, limit, offset)
+  let formattedQuery
+  order === 'precio DESC' ? formattedQuery = format(query, order, '', limit, offset) : formattedQuery = format(query, order[0], order[1], limit, offset)
+
+  console.log(formattedQuery)
   const { rows } = await pool.query(formattedQuery)
 
   // Devuelve un array con los resultados y un enlace a cada uno de ellos
@@ -35,13 +38,12 @@ const findAll = async ({ limit = 5, order = 'ASC', page = 1 }) => {
 
   // Devuelve un objeto con los resultados, el número total de páginas y los enlaces a la página siguiente y anterior
   return {
+    totalRows,
     totalPages,
     page,
     limit,
     next:
-      totalPages <= page
-        ? null
-        : `${BASE_URL}/joyas?limit=${limit}&page=${page + 1}`,
+      totalPages <= page ? null : `${BASE_URL}/joyas?limit=${limit}&page=${Number(page) + 1}`,
     previous:
       page <= 1 ? null : `${BASE_URL}/joyas?limit=${limit}&page=${page - 1}`,
     results
